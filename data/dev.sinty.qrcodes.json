@@ -1,0 +1,18 @@
+{
+    "schema-id": "dev.sinty.qrcodes",
+    "settings": [
+        {
+            "key": "search-engine",
+            "label": "Look Up Products With",
+            "subtitle": "Used by Search the Web on scanned barcodes",
+            "type": "string",
+            "widget": "combo",
+            "options": [
+                { "id": "duckduckgo", "label": "DuckDuckGo" },
+                { "id": "google", "label": "Google" },
+                { "id": "bing", "label": "Bing" },
+                { "id": "openfoodfacts", "label": "Open Food Facts", "subtitle": "Ingredients and nutrition of food products" }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="dev.sinty.qrcodes" path="/dev/sinty/qrcodes/">
+    <key name="search-engine" type="s">
+      <choices>
+        <choice value="duckduckgo"/>
+        <choice value="google"/>
+        <choice value="bing"/>
+        <choice value="openfoodfacts"/>
+      </choices>
+      <default>"duckduckgo"</default>
+      <summary>Product search</summary>
+      <description>Where Search the Web looks up the number of a scanned product barcode.</description>
+    </key>
+  </schema>
+</schemalist>

@@ -1,0 +1,16 @@
+BEGIN:VCARD
+VERSION:3.0
+UID:ada-1
+FN:Ada Lovelace
+N:Lovelace;Ada;;;
+ORG:Analytical Engines\, Ltd
+TEL;TYPE=CELL:+44 20 7946 0000
+TEL;TYPE=WORK:+44 20 7946 0001
+EMAIL;TYPE=INTERNET,HOME:ada@example.org
+ADR;TYPE=HOME:;;12 St James\, Square;London;;SW1Y 4JH;United Kingdom
+URL:https://example.org/ada
+NOTE:First line\nsecond line with a very long text that the contacts app folds acr
+ oss two lines
+PHOTO;ENCODING=b;TYPE=PNG:iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk
+ YPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==
+END:VCARD

@@ -1,0 +1,1 @@
+option('qr', type: 'feature', value: 'auto', description: 'Read QR codes from the camera and from images through ZBar')

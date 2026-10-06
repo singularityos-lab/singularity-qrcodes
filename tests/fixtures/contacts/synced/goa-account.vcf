@@ -1,0 +1,16 @@
+BEGIN:VCARD
+VERSION:3.0
+UID:ada-1
+FN:Ada Lovelace (online copy)
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+UID:bob
+FN:Bob Café
+ORG:Bakery;Front desk
+EMAIL:bob@bakery.example
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+ORG:Only Company Inc
+END:VCARD

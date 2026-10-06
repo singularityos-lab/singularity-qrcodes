@@ -1,0 +1,23 @@
+[Desktop Entry]
+Name=QR Codes
+Comment=Scan and create QR codes and barcodes
+Exec=singularity-qrcodes
+Icon=dev.sinty.qrcodes
+Terminal=false
+Type=Application
+Categories=Utility;
+Keywords=qr;qrcode;code;barcode;ean;upc;code128;scan;scanner;generate;wifi;camera;contact;
+StartupWMClass=dev.sinty.qrcodes
+Actions=scan-screen;new-code;share-wifi;
+
+[Desktop Action scan-screen]
+Name=Scan from Screen
+Exec=singularity-qrcodes --scan-screen
+
+[Desktop Action new-code]
+Name=New Code
+Exec=singularity-qrcodes --new-code
+
+[Desktop Action share-wifi]
+Name=Share Wi-Fi
+Exec=singularity-qrcodes --share-wifi

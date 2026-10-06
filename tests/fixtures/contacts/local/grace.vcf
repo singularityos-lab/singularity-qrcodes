@@ -1,0 +1,8 @@
+BEGIN:VCARD
+VERSION:4.0
+UID:urn:uuid:grace
+N:Hopper;Grace;;;
+item1.EMAIL;TYPE=work:mailto:grace@navy.example
+item1.X-ABLabel:Work
+TEL;VALUE=uri:tel:+1-555-0100
+END:VCARD
