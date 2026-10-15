@@ -25,7 +25,7 @@ qr_bridge_decode (const guint8 *gray, gint gray_length, gint width, gint height)
     const zbar_symbol_t *symbol;
     guint8 *copy;
 
-    if (gray == NULL || width <= 0 || height <= 0 || gray_length < width * height) {
+    if (gray == NULL || width <= 0 || height <= 0 || gray_length < 0 || (gint64) gray_length < (gint64) width * height) {
         g_ptr_array_add (found, NULL);
         return (gchar **) g_ptr_array_free (found, FALSE);
     }
@@ -51,7 +51,7 @@ qr_bridge_decode (const guint8 *gray, gint gray_length, gint width, gint height)
             const char *kind = qr_bridge_kind (zbar_symbol_get_type (symbol));
             if (data != NULL && length > 0 && kind != NULL) {
                 g_ptr_array_add (found, g_strdup (kind));
-                g_ptr_array_add (found, g_strndup (data, length));
+                g_ptr_array_add (found, g_utf8_make_valid (data, length));
             }
         }
     }
