@@ -972,19 +972,21 @@ namespace Singularity.Apps.QrCodes {
             Bytes bytes = yield file.load_bytes_async (null, null);
             Decoded[] found = {};
             Error? failure = null;
-            new Thread<void*> ("qrcodes-scan", () => {
-                try {
-                    var stream = new MemoryInputStream.from_bytes (bytes);
-                    var pixbuf = new Gdk.Pixbuf.from_stream (stream);
-                    var t = pixbuf.apply_embedded_orientation ();
-                    found = Scan.decode_pixbuf (t ?? pixbuf);
-                } catch (Error e) {
-                    failure = e;
-                }
-                Idle.add (scan_file_async.callback);
-                return null;
-            });
-            yield;
+            try {
+                yield Async.run<bool>((c) => {
+                    try {
+                        var stream = new MemoryInputStream.from_bytes (bytes);
+                        var pixbuf = new Gdk.Pixbuf.from_stream (stream);
+                        var t = pixbuf.apply_embedded_orientation ();
+                        found = Scan.decode_pixbuf (t ?? pixbuf);
+                    } catch (Error e) {
+                        failure = e;
+                    }
+                    return true;
+                }, Async.Qos.UTILITY);
+            } catch (Error e) {
+                warning("%s", e.message);
+            }
             if (failure != null) throw failure;
             return found;
         }
