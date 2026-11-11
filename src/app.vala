@@ -70,6 +70,7 @@ namespace Singularity.Apps.QrCodes {
         protected override void startup () {
             base.startup ();
             history = new History ();
+            QrCodesIntents.install (this);
             var provider = new CssProvider ();
             provider.load_from_string (CSS);
             StyleContext.add_provider_for_display (Gdk.Display.get_default (), provider, STYLE_PROVIDER_PRIORITY_USER + 1);
