@@ -6,6 +6,7 @@ Icon=dev.sinty.qrcodes
 Terminal=false
 Type=Application
 Categories=Utility;
+X-Sinty-FormFactors=desktop;tablet;phone
 Keywords=qr;qrcode;code;barcode;ean;upc;code128;scan;scanner;generate;wifi;camera;contact;
 StartupWMClass=dev.sinty.qrcodes
 Actions=scan-screen;new-code;share-wifi;
