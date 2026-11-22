@@ -1,0 +1,3 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="236" height="236" viewBox="0 0 236 236" fill="none"><defs><radialGradient id="dc_bloom" cx="70" cy="50" r="170" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#c4b5fd" stop-opacity="0.35" /><stop offset="1" stop-color="#c4b5fd" stop-opacity="0" /></radialGradient>
+<clipPath id="dc_clip"><rect x="43" y="43" width="150" height="150" rx="24" /></clipPath>
+</defs><g transform="rotate(-8 118 118)"><g clip-path="url(#dc_clip)"><rect x="0" y="0" width="236" height="236" fill="url(#dc_bloom)" /></g></g></svg>

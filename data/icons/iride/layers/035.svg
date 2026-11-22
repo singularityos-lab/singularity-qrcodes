@@ -1,0 +1,3 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="236" height="236" viewBox="0 0 236 236" fill="none"><defs><linearGradient id="dc_beam" x1="24" y1="0" x2="212" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fb923c" stop-opacity="0" /><stop offset="0.16" stop-color="#fb923c" /><stop offset="0.84" stop-color="#f43f5e" /><stop offset="1" stop-color="#f43f5e" stop-opacity="0" /></linearGradient>
+</defs><rect x="26" y="114" width="184" height="6" rx="3" fill="url(#dc_beam)" />
+</svg>
