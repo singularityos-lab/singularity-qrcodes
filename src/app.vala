@@ -2,7 +2,7 @@ using Gtk;
 
 namespace Singularity.Apps.QrCodes {
 
-    public class QrCodesApp : Singularity.Application {
+    public class QrCodesApp : Singularity.Application, Singularity.Migration.Migratable {
         public History history;
         private string? pending_action;
         private const string[] LAUNCH_ACTIONS = { "scan-screen", "share-wifi", "new-code" };
@@ -169,6 +169,37 @@ namespace Singularity.Apps.QrCodes {
                 pending_action = null;
                 activate_action (name, null);
             }
+        }
+
+        public void prepare_move () throws Singularity.Migration.MigrationError {
+            foreach (var w in get_windows ()) {
+                if (w is QrCodesWindow) ((QrCodesWindow) w).prepare_move ();
+            }
+        }
+
+        public Variant save_model () {
+            return new VariantDict ().end ();
+        }
+
+        public async void restore_model (Variant model) throws Error {
+        }
+
+        public string window_kind (Gtk.Window w) {
+            return (w is QrCodesWindow) ? "qrcodes" : "";
+        }
+
+        public Variant save_window (Gtk.Window w) {
+            return ((QrCodesWindow) w).save_migration ();
+        }
+
+        public async Gtk.Window? rebuild_window (string kind, Variant data) throws Error {
+            if (kind != "qrcodes") return null;
+            foreach (var old in get_windows ().copy ()) {
+                if (old is QrCodesWindow) old.destroy ();
+            }
+            var w = new QrCodesWindow (this);
+            w.restore_migration (data);
+            return w;
         }
 
         private const string CSS = """

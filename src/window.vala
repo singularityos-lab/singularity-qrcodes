@@ -47,6 +47,7 @@ namespace Singularity.Apps.QrCodes {
         private Label codes_subtitle;
         private Box codes_groups;
         private Gee.ArrayList<ScanGroup> groups = new Gee.ArrayList<ScanGroup> ();
+        private string? codes_note;
 
         private CodeView share_code;
         private Label share_name;
@@ -148,10 +149,7 @@ namespace Singularity.Apps.QrCodes {
             });
             camera.failed.connect ((msg) => camera_failed (msg));
             history.changed.connect (fill_history);
-            close_request.connect (() => {
-                camera.stop ();
-                return false;
-            });
+            ((Widget) this).destroy.connect (() => camera.stop ());
 
             fill_history ();
             if (history.load_error != null) show_toast (_("The history could not be read."));
@@ -1118,6 +1116,7 @@ namespace Singularity.Apps.QrCodes {
 
         private void show_codes (Gee.ArrayList<ScanGroup> list, string? note) {
             groups = list;
+            codes_note = note;
             Widget? child;
             while ((child = codes_groups.get_first_child ()) != null) codes_groups.remove (child);
             int total = Csv.count (list);
@@ -1156,6 +1155,154 @@ namespace Singularity.Apps.QrCodes {
                 codes_groups.append (group);
             }
             show_page ("codes");
+        }
+
+        public void prepare_move () throws Singularity.Migration.MigrationError {
+            if ((stack.visible_child_name ?? "") == "busy") throw new Singularity.Migration.MigrationError.UNSUPPORTED (_("Wait for QR Codes to finish reading before moving it"));
+        }
+
+        public Variant save_migration () {
+            var d = new VariantDict ();
+            d.insert_value ("page", new Variant.string (stack.visible_child_name ?? "welcome"));
+            d.insert_value ("source", new Variant.string (last_source));
+            var list = new VariantBuilder (new VariantType ("a(ssa(ss))"));
+            foreach (var g in groups) {
+                var codes = new VariantBuilder (new VariantType ("a(ss)"));
+                foreach (var c in g.codes) codes.add ("(ss)", c.format.id (), c.text);
+                list.add ("(ss@a(ss))", g.source, g.error ?? "", codes.end ());
+            }
+            d.insert_value ("groups", list.end ());
+            d.insert_value ("note", new Variant.string (codes_note ?? ""));
+            if (current != null) d.insert_value ("current", new Variant ("(ssbb)", current.format.id (), current.raw, current_from_history, result_back.visible));
+            if (shared_info != null) d.insert_value ("shared", new Variant ("(sssb)", shared_info.ssid, shared_info.security, shared_info.password, shared_info.hidden));
+            var form = new VariantDict ();
+            form.insert_value ("kind", new Variant.string (create_forms.visible_child_name));
+            form.insert_value ("text", new Variant.string (create_text.buffer.text));
+            form.insert_value ("ssid", new Variant.string (wifi_ssid.text));
+            int idx = 0;
+            for (int i = 0; i < security_labels.length; i++) if (security_labels[i] == wifi_security.current_value) idx = i;
+            form.insert_value ("security", new Variant.string (security_ids[idx]));
+            form.insert_value ("password", new Variant.string (wifi_password.text));
+            form.insert_value ("hidden", new Variant.boolean (wifi_hidden.active));
+            form.insert_value ("contact", new Variant.strv ({ contact_name.text, contact_org.text, contact_phone.text, contact_email.text, contact_url.text, contact_address.text, contact_note.text }));
+            form.insert_value ("format", new Variant.string (bar_format_value ().id ()));
+            form.insert_value ("code", new Variant.string (bar_text.text));
+            form.insert_value ("correction", new Variant.int32 ((int) ec_level));
+            d.insert_value ("create", form.end ());
+            return d.end ();
+        }
+
+        public void restore_migration (Variant data) {
+            var d = new VariantDict (data);
+            var page = d.lookup_value ("page", VariantType.STRING);
+            string name = page != null ? page.get_string () : "welcome";
+            var source = d.lookup_value ("source", VariantType.STRING);
+            if (source != null) last_source = source.get_string ();
+            var restored = new Gee.ArrayList<ScanGroup> ();
+            var saved_groups = d.lookup_value ("groups", new VariantType ("a(ssa(ss))"));
+            if (saved_groups != null) {
+                var it = saved_groups.iterator ();
+                string label, error;
+                VariantIter codes;
+                while (it.next ("(ssa(ss))", out label, out error, out codes)) {
+                    var g = new ScanGroup (label);
+                    if (error != "") g.error = error;
+                    string format, text;
+                    while (codes.next ("(ss)", out format, out text)) g.codes.add (new Decoded (CodeFormat.from_id (format), text));
+                    restored.add (g);
+                }
+            }
+            var note = d.lookup_value ("note", VariantType.STRING);
+            string? saved_note = note != null && note.get_string () != "" ? note.get_string () : null;
+            var form = d.lookup_value ("create", VariantType.VARDICT);
+            if (form != null) restore_form (new VariantDict (form));
+            switch (name) {
+                case "codes":
+                    show_codes (restored, saved_note);
+                    break;
+                case "result":
+                    var saved_current = d.lookup_value ("current", new VariantType ("(ssbb)"));
+                    if (saved_current == null) break;
+                    string current_format, raw;
+                    bool from_history, back;
+                    saved_current.get ("(ssbb)", out current_format, out raw, out from_history, out back);
+                    if (back) show_codes (restored, saved_note);
+                    else groups = restored;
+                    current_from_history = from_history;
+                    show_content (Content.parse_code (raw, CodeFormat.from_id (current_format)));
+                    result_back.visible = back;
+                    break;
+                case "nocode":
+                    show_decoded (new Decoded[0], last_source, "");
+                    break;
+                case "share":
+                    var saved_shared = d.lookup_value ("shared", new VariantType ("(sssb)"));
+                    if (saved_shared == null) break;
+                    var info = new WifiInfo ();
+                    string ssid, security, password;
+                    bool hidden;
+                    saved_shared.get ("(sssb)", out ssid, out security, out password, out hidden);
+                    info.ssid = ssid;
+                    info.security = security;
+                    info.password = password;
+                    info.hidden = hidden;
+                    show_shared (info);
+                    break;
+                case "camera":
+                    start_camera ();
+                    break;
+                case "busy":
+                    show_page ("scan");
+                    break;
+                default:
+                    if (stack.get_child_by_name (name) != null) show_page (name);
+                    break;
+            }
+        }
+
+        private void restore_form (VariantDict form) {
+            var text = form.lookup_value ("text", VariantType.STRING);
+            if (text != null) create_text.buffer.text = text.get_string ();
+            var ssid = form.lookup_value ("ssid", VariantType.STRING);
+            if (ssid != null) wifi_ssid.text = ssid.get_string ();
+            var security = form.lookup_value ("security", VariantType.STRING);
+            if (security != null) {
+                int idx = 0;
+                for (int i = 0; i < security_ids.length; i++) if (security_ids[i] == security.get_string ()) idx = i;
+                wifi_security.current_value = security_labels[idx];
+                wifi_password.visible = idx != 3;
+            }
+            var password = form.lookup_value ("password", VariantType.STRING);
+            if (password != null) wifi_password.text = password.get_string ();
+            var hidden = form.lookup_value ("hidden", VariantType.BOOLEAN);
+            if (hidden != null) wifi_hidden.active = hidden.get_boolean ();
+            var contact = form.lookup_value ("contact", VariantType.STRING_ARRAY);
+            if (contact != null && contact.n_children () == 7) {
+                string[] values = contact.get_strv ();
+                contact_name.text = values[0];
+                contact_org.text = values[1];
+                contact_phone.text = values[2];
+                contact_email.text = values[3];
+                contact_url.text = values[4];
+                contact_address.text = values[5];
+                contact_note.text = values[6];
+            }
+            var format = form.lookup_value ("format", VariantType.STRING);
+            if (format != null) {
+                var f = CodeFormat.from_id (format.get_string ());
+                if (f.is_linear ()) bar_format.current_value = f.label ();
+                update_bar_hint ();
+            }
+            var code = form.lookup_value ("code", VariantType.STRING);
+            if (code != null) bar_text.text = code.get_string ();
+            var correction = form.lookup_value ("correction", VariantType.INT32);
+            if (correction != null) {
+                foreach (var l in QrEcLevel.all ()) if ((int) l == correction.get_int32 ()) ec_level = l;
+                ec_row.current_value = ec_level.label ();
+            }
+            var kind = form.lookup_value ("kind", VariantType.STRING);
+            if (kind != null && create_forms.get_child_by_name (kind.get_string ()) != null) create_forms.visible_child_name = kind.get_string ();
+            update_created ();
         }
 
         private void show_content (Content c) {
