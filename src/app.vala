@@ -2,7 +2,7 @@ using Gtk;
 
 namespace Singularity.Apps.QrCodes {
 
-    public class QrCodesApp : Singularity.Application, Singularity.Migration.Migratable {
+    public class QrCodesApp : Singularity.Application, Singularity.Migration.Migratable, Singularity.Startup.Bootable {
         public History history;
         private string? pending_action;
         private const string[] LAUNCH_ACTIONS = { "scan-screen", "share-wifi", "new-code" };
@@ -35,7 +35,7 @@ namespace Singularity.Apps.QrCodes {
         }
 
         private QrCodesWindow present_window () {
-            activate ();
+            show_window ();
             return (QrCodesWindow) get_active_window ();
         }
 
@@ -160,7 +160,30 @@ namespace Singularity.Apps.QrCodes {
             set_accels_for_action ("win.show-history", { "<Control>h" });
         }
 
-        public override void activate () {
+        public Singularity.Startup.Plan build_plan (Singularity.Startup.Request request) {
+            var plan = new Singularity.Startup.Plan ();
+            plan.version = "qrcodes-1";
+            if (request.kind == Singularity.Startup.RequestKind.SERVICE) {
+                plan.main ("ready", Singularity.Startup.Category.PREPARE, (c) => {})
+                    .reaches (Singularity.Startup.Milestone.SHELL_READY)
+                    .reaches (Singularity.Startup.Milestone.CONTENT_READY)
+                    .reaches (Singularity.Startup.Milestone.INTERACTIVE);
+                return plan;
+            }
+            plan.main ("window", Singularity.Startup.Category.SHELL, (c) => {
+                show_window ();
+                c.window = get_active_window ();
+            }).reaches (Singularity.Startup.Milestone.SHELL_READY)
+              .reaches (Singularity.Startup.Milestone.CONTENT_READY)
+              .reaches (Singularity.Startup.Milestone.INTERACTIVE);
+            return plan;
+        }
+
+        public void handle_request (Singularity.Startup.Request request) {
+            show_window ();
+        }
+
+        internal void show_window () {
             var w = get_active_window ();
             if (w == null) w = new QrCodesWindow (this);
             w.present ();

@@ -40,7 +40,7 @@ namespace Singularity.Apps.QrCodes {
         }
 
         public override async Singularity.SearchActivationReply? activate_result (string id, string[] terms, uint32 timestamp) throws Error {
-            app.activate ();
+            app.show_window ();
             var w = app.get_active_window () as QrCodesWindow;
             if (w != null) w.create_from_text (id);
             return null;
@@ -66,7 +66,7 @@ namespace Singularity.Apps.QrCodes {
 
         public override void launch_search (string[] terms, uint32 timestamp) {
             string? text = text_of (terms);
-            app.activate ();
+            app.show_window ();
             var w = app.get_active_window () as QrCodesWindow;
             if (w != null && text != null) w.create_from_text (text);
         }
